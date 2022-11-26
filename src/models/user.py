@@ -12,6 +12,8 @@ class User(db.Model):
     email = db.Column(db.String(50), unique=True, nullable=False)
     password_hash = db.Column(db.String(100), nullable=False)
     notes = db.relationship('Note', secondary='collaborators', backref='users')
+    roles = db.relationship('Role', secondary='users_roles',
+                            backref=db.backref('user', lazy='dynamic'))
 
     def to_json(self):
         return {
@@ -22,6 +24,7 @@ class User(db.Model):
             'email': self.email,
             'password_hash': self.password_hash,
             'notes': [note.id for note in self.notes],
+            'roles': [role.name for role in self.roles],
         }
 
     def save_to_db(self):

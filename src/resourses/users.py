@@ -1,6 +1,8 @@
-from src.app import app
+from src.app import app, auth
 from src.models import User
 from flask_restful import reqparse
+
+from src.models.role import Role
 from src.utils.exception_wrapper import handle_server_exception
 from src.utils.exception_wrapper import handle_error_format
 
@@ -42,12 +44,17 @@ def create_user():
         email=email,
         password_hash=password_hash
     )
+
+    role = Role.get_by_name('admin')
+    new_user.roles.append(role)
+
     new_user.save_to_db()
 
     return User.to_json(new_user)
 
 
 @app.route('/user/<userId>', methods=['GET'])
+@auth.login_required(role='admin')
 @handle_server_exception
 def get_user_by_id(userId: int):
     user = User.get_by_id(userId)
@@ -58,6 +65,7 @@ def get_user_by_id(userId: int):
 
 
 @app.route('/user/<userId>', methods=['PUT'])
+@auth.login_required
 @handle_server_exception
 def update_user(userId: int):
     parser = reqparse.RequestParser()
@@ -89,12 +97,14 @@ def update_user(userId: int):
 
 
 @app.route('/user/<userId>', methods=['DELETE'])
+@auth.login_required(role='admin')
 @handle_server_exception
 def delete_user_by_id(userId: int):
     return User.delete_by_id(userId)
 
 
 @app.route('/user/statistics/<userId>', methods=['GET'])
+@auth.login_required()
 @handle_server_exception
 def get_user_statistic(userId: int):
     user = User.get_by_id(userId)
