@@ -1,4 +1,4 @@
-from src.app import app
+from src.app import app, auth
 from src.models import Tag
 from src.models import Note
 from src.models import User
@@ -10,6 +10,7 @@ from src.utils.exception_wrapper import handle_error_format
 
 
 @app.route('/note/create', methods=['POST'])
+@auth.login_required()
 @handle_server_exception
 def create_note():
     parser = reqparse.RequestParser()
@@ -84,6 +85,7 @@ def get_note_by_id(noteId: int):
 
 
 @app.route('/note/<noteId>', methods=['PUT'])
+@auth.login_required()
 @handle_server_exception
 def update_note_by_id(noteId: int):
     parser = reqparse.RequestParser()
@@ -135,6 +137,7 @@ def update_note_by_id(noteId: int):
 
 
 @app.route('/note/<noteId>', methods=['DELETE'])
+@auth.login_required()
 @handle_server_exception
 def delete_note_by_id(noteId: int):
     return Note.delete_note_by_id(noteId)

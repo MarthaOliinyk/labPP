@@ -11,3 +11,6 @@ from src.resourses.users import get_user_by_id
 from src.resourses.users import update_user
 from src.resourses.users import delete_user_by_id
 from src.resourses.users import get_user_statistic
+
+from src.resourses.auth import verify_password
+from src.resourses.auth import get_user_roles
