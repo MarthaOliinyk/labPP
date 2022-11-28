@@ -6,7 +6,7 @@ from src.models import User
 def verify_password(username, password):
     user = User.get_by_username(username)
 
-    if user and User.verify_hash(password, user.password_hash):
+    if user and User.verify_hash(password, user.password):
         return username
 
 
