@@ -2,7 +2,7 @@ from src.app import app, auth
 from src.models import User
 from flask_restful import reqparse
 
-from src.models.role import Role
+from src.models import Role
 from src.utils.exception_wrapper import handle_server_exception
 from src.utils.exception_wrapper import handle_error_format
 
@@ -16,14 +16,14 @@ def create_user():
     parser.add_argument('first_name', help='fullname cannot be blank', required=True)
     parser.add_argument('last_name', help='fullname cannot be blank', required=True)
     parser.add_argument('email', help='email cannot be blank', required=True)
-    parser.add_argument('password_hash', help='password cannot be blank', required=True)
+    parser.add_argument('password', help='password cannot be blank', required=True)
 
     data = parser.parse_args()
     username = data['username']
     first_name = data['first_name']
     last_name = data['last_name']
     email = data['email']
-    password = data['password_hash']
+    password = data['password']
     password_hash = User.generate_hash(password)
 
     if '@' not in email:
@@ -42,10 +42,10 @@ def create_user():
         first_name=first_name,
         last_name=last_name,
         email=email,
-        password_hash=password_hash
+        password=password
     )
 
-    role = Role.get_by_name('admin')
+    role = Role.get_by_name('user')
     new_user.roles.append(role)
 
     new_user.save_to_db()

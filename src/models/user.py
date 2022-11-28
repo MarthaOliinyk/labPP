@@ -10,7 +10,7 @@ class User(db.Model):
     first_name = db.Column(db.String(50), nullable=False)
     last_name = db.Column(db.String(50), nullable=False)
     email = db.Column(db.String(50), unique=True, nullable=False)
-    password_hash = db.Column(db.String(100), nullable=False)
+    password = db.Column(db.String(100), nullable=False)
     notes = db.relationship('Note', secondary='collaborators', backref='users')
     roles = db.relationship('Role', secondary='users_roles',
                             backref=db.backref('user', lazy='dynamic'))
@@ -22,7 +22,7 @@ class User(db.Model):
             'first_name': self.first_name,
             'last_name': self.last_name,
             'email': self.email,
-            'password_hash': self.password_hash,
+            'password': self.password,
             'notes': [note.id for note in self.notes],
             'roles': [role.name for role in self.roles],
         }
@@ -48,6 +48,14 @@ class User(db.Model):
         return User.query.filter_by(id=userId).first()
 
     @classmethod
+    def get_by_username_or_id(cls, identifier):
+        return User.query.filter((User.id == identifier) | (User.username == identifier)).first()
+
+    @classmethod
+    def get_by_username_or_email(cls, identifier):
+        return User.query.filter((User.email == identifier) | (User.username == identifier)).first()
+
+    @classmethod
     def delete_by_id(cls, userId):
         try:
             user = User.get_by_id(userId)
@@ -62,3 +70,16 @@ class User(db.Model):
         except AttributeError:
             return handle_error_format('User with such id does not exist.',
                                        'Field \'userId\' in path parameters.'), 404
+
+    @classmethod
+    def delete_by_identifier(cls, identifier):
+        user = User.get_by_username_or_id(identifier)
+
+        if not user:
+            return handle_error_format('User with such id/username does not exist.',
+                                       'Field \'userId/username\' in path parameters.'), 404
+
+        user_json = User.to_json(user)
+        User.query.filter_by(id=user.id).delete()
+        db.session.commit()
+        return user_json
