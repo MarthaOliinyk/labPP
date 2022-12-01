@@ -4,7 +4,7 @@ from src.models import User
 
 @auth.verify_password
 def verify_password(username, password):
-    user = User.get_by_username(username)
+    user = User.get_by_username_or_email(username)
 
     if user and User.verify_hash(password, user.password):
         return username

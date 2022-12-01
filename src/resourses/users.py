@@ -42,7 +42,7 @@ def create_user():
         first_name=first_name,
         last_name=last_name,
         email=email,
-        password=password
+        password=User.generate_hash(password)
     )
 
     role = Role.get_by_name('user')
@@ -91,6 +91,7 @@ def update_user(userId: int):
 
     user.first_name = first_name
     user.last_name = last_name
+    user.username = username
     user.save_to_db()
 
     return User.to_json(user)

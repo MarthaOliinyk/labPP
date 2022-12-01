@@ -1,6 +1,7 @@
 from src.app import db
 import src.models as models
 from datetime import datetime
+
 from src.utils.exception_wrapper import handle_error_format
 
 
@@ -12,6 +13,8 @@ class Note(db.Model):
     last_edit_date = db.Column(db.DateTime, nullable=False, default=datetime.now())
     last_edit_user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     tags = db.relationship('Tag', secondary='note_tag', back_populates='notes', cascade="all", lazy='dynamic')
+    collaborators = db.relationship('Collaborator', secondary='collaborators',
+                                    back_populates='notes', cascade="all", lazy='dynamic')
 
     def to_json(self):
         return {
