@@ -5,6 +5,7 @@ from src.models import User
 from datetime import datetime
 from flask_restful import reqparse
 from werkzeug.exceptions import NotFound
+
 from src.utils.exception_wrapper import handle_server_exception
 from src.utils.exception_wrapper import handle_error_format
 
@@ -91,15 +92,14 @@ def update_note_by_id(noteId: int):
     parser = reqparse.RequestParser()
 
     parser.add_argument('text', help='username cannot be blank', required=True)
-    parser.add_argument('tags', type=int, action='append', help='Tags cannot be left blank', required=True)
+    parser.add_argument('tags', type=str, action='append', help='Tags cannot be left blank', required=True)
     parser.add_argument('users', type=int, action='append', help='Users cannot be left blank', required=True)
-    parser.add_argument('lastEditDate', type=str, help='lastEditDate cannot be blank', required=True)
-    parser.add_argument('lastEditUserId', help='lastEditUserId cannot be blank', required=True)
+    # parser.add_argument('lastEditDate', type=str, help='lastEditDate cannot be blank', required=True)
+    # parser.add_argument('lastEditUserId', help='lastEditUserId cannot be blank', required=True)
 
     data = parser.parse_args()
     text = data['text']
-    last_edit_date = data['lastEditDate']
-    last_edit_user_id = data['lastEditUserId']
+    # last_edit_user_id = data['lastEditUserId']
 
     tags = []
     for tag_id in data['tags']:
@@ -116,21 +116,28 @@ def update_note_by_id(noteId: int):
 
         users.append(user)
 
+    username = auth.current_user()
+    user = User.get_by_username(username)
+
+    if user not in users:
+        return handle_error_format('No access',
+                                   'Field \'users\' in path parameters.'), 403
+
     note = Note.get_note_by_id(noteId)
 
     if not note:
         return handle_error_format('Note with such id does not exist.',
                                    'Field \'noteId\' in path parameters.'), 404
 
-    if not User.get_by_id(last_edit_user_id):
-        return handle_error_format('User with such id does not exist.',
-                                   'Field \'last_edit_user_id\' in path parameters.'), 404
+    # if not User.get_by_id(last_edit_user_id):
+    #     return handle_error_format('User with such id does not exist.',
+    #                                'Field \'last_edit_user_id\' in path parameters.'), 404
 
     note.text = text
-    note.last_edit_date = last_edit_date
-    note.last_edit_user_id = last_edit_user_id
+    note.last_edit_date = datetime.now()
+    note.last_edit_user_id = user.id
     note.tags = tags
-    note.users = users
+    note.collaborators = users
     Note.save_to_db(note)
 
     return Note.to_json(note)
